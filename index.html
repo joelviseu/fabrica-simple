@@ -15,32 +15,32 @@
         <div class="container">
             <h1 class="display-4 mb-4">HomeStyle Furniture</h1>
             <p class="lead mb-4">Transform your space with our premium furniture collections</p>
-            <button class="btn btn-primary btn-lg" onclick="showCategories()">
+            <a href="#home" class="btn btn-primary btn-lg" id="explore-btn">
                 Explore Collections
-            </button>
+            </a>
         </div>
     </section>
 
-        <!-- Main Content: HTMX-powered dynamic container -->
-        <div id="main-content" class="htmx-swap-container" hx-get="categories/main.html" hx-trigger="load" hx-swap="outerHTML transition:true"></div>
+    <!-- Main Content: HTMX-powered dynamic container -->
+    <div id="main-content" class="htmx-swap-container"></div>
 
-            <script>
-            // HTMX right-to-left transition animation (strong effect)
-            document.body.addEventListener('htmx:beforeSwap', function(evt) {
-                if(evt.detail.target && evt.detail.xhr && evt.detail.target.id === 'main-content') {
-                    evt.detail.target.classList.add('swipe-out-left');
-                }
-            });
-            document.body.addEventListener('htmx:afterSwap', function(evt) {
-                if(evt.detail.target && evt.detail.target.id === 'main-content') {
-                    evt.detail.target.classList.remove('swipe-out-left');
-                    evt.detail.target.classList.add('swipe-in-right');
-                    setTimeout(function() {
-                        evt.detail.target.classList.remove('swipe-in-right');
-                    }, 600);
-                }
-            });
-            </script>
+    <script>
+    // HTMX right-to-left transition animation (strong effect)
+    document.body.addEventListener('htmx:beforeSwap', function(evt) {
+        if(evt.detail.target && evt.detail.xhr && evt.detail.target.id === 'main-content') {
+            evt.detail.target.classList.add('swipe-out-left');
+        }
+    });
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if(evt.detail.target && evt.detail.target.id === 'main-content') {
+            evt.detail.target.classList.remove('swipe-out-left');
+            evt.detail.target.classList.add('swipe-in-right');
+            setTimeout(function() {
+                evt.detail.target.classList.remove('swipe-in-right');
+            }, 600);
+        }
+    });
+    </script>
 
     <!-- Footer -->
     <footer class="bg-dark text-white text-center py-4">
@@ -55,5 +55,7 @@
     </footer>
 
     <script src="script.js"></script>
+
+<script src="route.js"></script>
 </body>
 </html>

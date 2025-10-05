@@ -1,8 +1,100 @@
+
+/* HomeStyle Furniture Custom Styles (Bootstrap-based, optimized) */
+
+:root {
+    --primary-color: #b48a78;
+    --secondary-color: #2d3a4b;
+}
+
+body {
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    background: #f8f9fa;
+    color: #2d3a4b;
+    overflow-x: hidden;
+}
+
+/* Hero Section */
+.hero {
+    background: linear-gradient(rgba(45,58,75,0.7), rgba(180,138,120,0.3)),
+        url('https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1200') center/cover;
+    min-height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    text-align: center;
+    border-radius: 0 0 2rem 2rem;
+    box-shadow: 0 8px 32px rgba(45,58,75,0.08);
+    margin-bottom: 2rem;
+}
+.hero h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+}
+.hero .lead {
+    font-size: 1.25rem;
+    font-weight: 400;
+    margin-bottom: 2rem;
+}
+
+/* Card Styles */
+.card {
+    border: none;
+    border-radius: 1.25rem;
+    box-shadow: 0 4px 24px rgba(45,58,75,0.07);
+    transition: transform 0.2s, box-shadow 0.2s;
+    background: #fff;
+}
+.card:hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 8px 32px rgba(45,58,75,0.13);
+}
+.card .card-img-top {
+    border-radius: 1.25rem 1.25rem 0 0;
+    object-fit: cover;
+    height: 180px;
+}
+.card-body {
+    padding: 1.5rem 1rem 1rem 1rem;
+}
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
+/* Button Styles (optimized) */
+.btn {
+    font-weight: 500;
+    border-radius: 2rem;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+.btn-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: #fff !important;
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    box-shadow: 0 2px 8px rgba(180,138,120,0.08);
+    transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.btn-primary:hover, .btn-primary:focus {
+    background-color: #a06d57 !important;
+    border-color: #a06d57 !important;
+    box-shadow: 0 4px 16px rgba(180,138,120,0.18);
+    transform: translateY(-2px) scale(1.03);
+}
+
+/* Primary Color Utility (project-specific) */
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
 /* HTMX swipe transition classes */
 .htmx-swap-container {
     position: relative;
     min-height: 500px;
-    transition: none;
 }
 .swipe-in-right {
     animation: swipeInRight 0.6s cubic-bezier(0.4,0,0.2,1) both;
@@ -32,238 +124,66 @@
         transform: translateX(-100vw);
     }
 }
-:root {
-    --primary-color: #b48a78;
-    --secondary-color: #2d3a4b;
+
+/* Footer */
+footer {
+    background: var(--secondary-color);
+    color: #fff;
+    border-radius: 2rem 2rem 0 0;
+    margin-top: 2rem;
+    box-shadow: 0 -4px 24px rgba(45,58,75,0.07);
+}
+footer a {
+    color: #fff;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+footer a:hover {
+    opacity: 1;
 }
 
-body { 
-    font-family: 'Segoe UI', sans-serif;
-    overflow-x: hidden; /* Prevent horizontal scrollbar during transitions */
-}
-
-.hero {
-    background: linear-gradient(rgba(45,58,75,0.7), rgba(180,138,120,0.3)), 
-                url('https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1200') center/cover;
-    height: 500px;
-    display: flex;
-    align-items: center;
-    color: white;
-    text-align: center;
-}
-
-.card {
-    border: none;
-    border-radius: 1.5rem;
-    box-shadow: 0 4px 24px rgba(180,138,120,0.1);
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 8px 32px rgba(180,138,120,0.2);
-}
-
-.btn-primary {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-
-.text-primary { 
-    color: var(--primary-color) !important; 
-}
-
-/* Enhanced Animations */
-#content {
-    transition: all 0.4s ease-in-out;
-    overflow-x: hidden;
-    position: relative;
-    min-height: 600px; /* Fixed minimum height to prevent scrollbar flickering */
-}
-
-.view-container {
-    width: 100%;
-    position: relative;
-    min-height: 500px; /* Ensure consistent height for all views */
-}
-
-.view-transition {
-    animation: slideInFromRight 0.5s ease-out forwards;
-}
-
-@keyframes slideInFromRight {
-    from {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.view-transition-out {
-    animation: slideOutToLeft 0.3s ease-in;
-}
-
-@keyframes slideOutToLeft {
-    from {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateX(-100%);
-    }
-}
-
-.animate-on-load {
-    opacity: 1; /* Simply show elements without animation */
-}
-
-/* Enhanced Mobile Responsiveness */
-@media (max-width: 768px) {
+/* Responsive Tweaks */
+@media (max-width: 992px) {
     .hero {
-        height: 400px;
-        padding: 0 15px;
-    }
-    
-    .hero h1 {
-        font-size: 2.5rem;
-    }
-    
-    .hero .lead {
+        min-height: 340px;
         font-size: 1.1rem;
     }
-    
-    .card {
-        margin-bottom: 20px;
-    }
-    
-    .card-body {
-        padding: 15px;
-    }
-    
-    .btn-lg {
-        padding: 12px 24px;
-        font-size: 16px;
-    }
-    
-    #details-view .card {
-        padding: 30px 20px;
-    }
-    
-    #detail-image {
-        max-width: 250px;
-    }
-    
-    /* Adjust container heights for mobile */
-    #content {
-        min-height: 500px;
-    }
-    
-    .view-container {
-        min-height: 400px;
+    .card .card-img-top {
+        height: 140px;
     }
 }
-
+@media (max-width: 768px) {
+    .hero {
+        min-height: 220px;
+        padding: 1rem 0.5rem;
+    }
+    .card {
+        margin-bottom: 1.5rem;
+    }
+    .card .card-img-top {
+        height: 120px;
+    }
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+}
 @media (max-width: 480px) {
     .hero {
-        height: 350px;
+        min-height: 120px;
+        font-size: 1rem;
     }
-    
-    .hero h1 {
-        font-size: 2rem;
-    }
-    
     .container {
-        padding-left: 10px;
-        padding-right: 10px;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
     }
-    
     .card {
-        border-radius: 1rem;
+        border-radius: 0.75rem;
     }
-    
-    .card i {
-        font-size: 2rem !important;
+    .card .card-img-top {
+        height: 80px;
     }
-    
-    .card h4, .card h5 {
-        font-size: 1.2rem;
+    .card-title {
+        font-size: 1rem;
     }
-    
-    /* Further adjust for very small screens */
-    #content {
-        min-height: 450px;
-    }
-    
-    .view-container {
-        min-height: 350px;
-    }
-}
-
-/* Loading Animation */
-.loading {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid var(--primary-color);
-    border-radius: 50%;
-    border-top-color: transparent;
-    animation: spin 1s linear infinite;
-    margin-right: 10px;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* Swipe indicator for mobile */
-.swipe-indicator {
-    display: none;
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.7);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 12px;
-    z-index: 1000;
-}
-
-@media (max-width: 768px) {
-    .swipe-indicator {
-        display: block;
-    }
-}
-
-/* Enhanced button hover effects */
-.btn {
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.5s;
-}
-
-.btn:hover::before {
-    left: 100%;
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
