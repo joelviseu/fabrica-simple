@@ -1,79 +1,201 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HomeStyle Furniture</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <link href="styles.css" rel="stylesheet">
-    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>HomeStyle Furniture Gallery</title>
+        <!-- Bootswatch Paper Theme for Bootstrap 3 -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@3.4.1/paper/bootstrap.min.css">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+        <link href="styles.css" rel="stylesheet">
+        <style>
+            html, body {
+                min-height: 100vh;
+            }
+            body {
+                min-height: 100vh;
+                /* Always show vertical scrollbar to prevent layout shift */
+                overflow-y: scroll;
+            }
+        </style>
+        <style>
+        /* Prevent hamburger icon flicker on SPA swap */
+        .navbar-header, .navbar-toggle {
+            will-change: transform;
+            backface-visibility: hidden;
+            position: relative;
+            z-index: 1001;
+            transform: translateZ(0);
+        }
+        .navbar.navbar-fixed-top {
+            z-index: 1000;
+            overflow-anchor: none;
+        }
+        html {
+            /* Always reserve space for scrollbar to prevent layout shift */
+            overflow-y: scroll;
+        }
+        </style>
+        <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 </head>
 <body>
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container">
-            <h1 class="display-4 mb-4">HomeStyle Furniture</h1>
-            <p class="lead mb-4">Transform your space with our premium furniture collections</p>
-            <a href="#home" class="btn btn-primary btn-lg" id="explore-btn">
-                Explore Collections
-            </a>
-        </div>
-    </section>
+        <!-- Navbar -->
+        <nav class="navbar navbar-default navbar-fixed-top paper-shadow">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-navbar" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#home"><i class="fa fa-couch"></i> HomeStyle</a>
+                </div>
+                <div class="collapse navbar-collapse" id="main-navbar">
+                    <ul class="nav navbar-nav navbar-left">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#kitchen_styles">Kitchens</a></li>
+                        <li><a href="#livingroom_styles">Living Rooms</a></li>
+                        <li><a href="#bedroom_styles">Bedrooms</a></li>
+                        <li><a href="#storage_styles">Storage</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
 
-    <!-- Main Content: HTMX-powered dynamic container -->
-    <div id="main-content" class="htmx-swap-container" hx-swap="none"></div>
+        <!-- Hero Section -->
+        <header class="hero-header text-center" style="background: linear-gradient(rgba(45,58,75,0.7), rgba(180,138,120,0.3)), url('https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1200') center/cover; min-height: 420px; display: flex; align-items: center; justify-content: center; color: #fff; text-align: center; border-radius: 0 0 2rem 2rem; box-shadow: 0 8px 32px rgba(45,58,75,0.08); margin-bottom: 2rem; padding-top: 90px;">
+            <div class="container">
+                <h1 class="display-3" style="font-weight:700;letter-spacing:-1px; text-shadow:0 2px 16px rgba(45,58,75,0.18);">HomeStyle Furniture Gallery</h1>
+                <p class="lead" style="font-size:1.5rem; font-weight:400; margin-bottom:2rem; text-shadow:0 2px 8px rgba(45,58,75,0.18);">Discover, explore, and get inspired by our curated furniture collections for every room.</p>
+                <a href="#home" class="btn btn-primary btn-lg" id="explore-btn" style="box-shadow:0 4px 16px rgba(180,138,120,0.18);">
+                    <i class="fa fa-search"></i> Explore Collections
+                </a>
+            </div>
+        </header>
 
-    <script>
-    // Custom HTMX swap for true swipe-out and swipe-in
-    document.body.addEventListener('htmx:beforeSwap', function(evt) {
-        if(evt.detail.target && evt.detail.xhr && evt.detail.target.id === 'main-content') {
-            evt.preventDefault(); // We'll handle the swap manually
-            var main = evt.detail.target;
-            var oldPanel = main.querySelector('.panel-content');
-            // Create a temp div to parse the new content
-            var temp = document.createElement('div');
-            temp.innerHTML = evt.detail.xhr.response;
-            var newPanel = temp.querySelector('.panel-content');
-            if(!oldPanel || !newPanel) {
-                // fallback: just swap instantly
-                main.innerHTML = evt.detail.xhr.response;
-                // Animate in if possible
-                var np = main.querySelector('.panel-content');
-                if(np) {
-                    np.classList.add('swipe-in-right');
-                    setTimeout(function(){ np.classList.remove('swipe-in-right'); }, 600);
-                }
+        <!-- Main Content: HTMX-powered dynamic container -->
+        <div id="main-content" class="htmx-swap-container" hx-swap="none"></div>
+
+        <script>
+        // Custom HTMX swap for true swipe-out and swipe-in
+        document.body.addEventListener('htmx:beforeSwap', function(evt) {
+            // Prevent swap if the navbar toggle (hamburger) is clicked
+            // Only allow swap for actual navigation links
+            var activeElement = document.activeElement;
+            if (activeElement && activeElement.classList.contains('navbar-toggle')) {
+                // Ignore swaps triggered by navbar toggle
                 return;
             }
-            // Animate out
-            oldPanel.classList.add('swipe-out-left');
-            setTimeout(function() {
-                main.innerHTML = newPanel.outerHTML;
-                var np = main.querySelector('.panel-content');
-                if(np) {
-                    np.classList.add('swipe-in-right');
-                    setTimeout(function(){ np.classList.remove('swipe-in-right'); }, 600);
+            if(evt.detail.target && evt.detail.xhr && evt.detail.target.id === 'main-content') {
+                evt.preventDefault(); // We'll handle the swap manually
+                var main = evt.detail.target;
+                var oldPanel = main.querySelector('.panel-content');
+                // Create a temp div to parse the new content
+                var temp = document.createElement('div');
+                temp.innerHTML = evt.detail.xhr.response;
+                var newPanel = temp.querySelector('.panel-content');
+                if(!oldPanel || !newPanel) {
+                    // fallback: just swap instantly
+                    main.innerHTML = evt.detail.xhr.response;
+                    // Animate in if possible
+                    var np = main.querySelector('.panel-content');
+                    if(np) {
+                        np.classList.add('swipe-in-right');
+                        setTimeout(function(){ np.classList.remove('swipe-in-right'); }, 600);
+                    }
+                    return;
                 }
-            }, 600);
-        }
-    });
-    </script>
+                // Animate out
+                oldPanel.classList.add('swipe-out-left');
+                setTimeout(function() {
+                    main.innerHTML = newPanel.outerHTML;
+                    var np = main.querySelector('.panel-content');
+                    if(np) {
+                        np.classList.add('swipe-in-right');
+                        setTimeout(function(){ np.classList.remove('swipe-in-right'); }, 600);
+                    }
+                }, 600);
+            }
+        });
+        </script>
 
-    <!-- Footer -->
-    <footer class="bg-dark text-white text-center py-4">
-        <div class="container">
-            <p>&copy; 2025 HomeStyle Furniture. All rights reserved.</p>
-            <div class="mt-3">
-                <a href="#" class="text-white mx-2"><i class="fab fa-facebook"></i></a>
-                <a href="#" class="text-white mx-2"><i class="fab fa-instagram"></i></a>
-                <a href="#" class="text-white mx-2"><i class="fab fa-linkedin"></i></a>
+        <!-- Footer -->
+        <footer class="footer bg-light text-center paper-shadow" style="margin-top:3rem;padding:2.5rem 0 1.5rem 0;border-radius:2rem 2rem 0 0;box-shadow:0 -4px 24px rgba(45,58,75,0.07);">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 col-sm-6 mb-3">
+                        <h4 class="text-primary"><i class="fa fa-couch"></i> HomeStyle</h4>
+                        <p class="small">Premium furniture for modern living. Crafted with passion, delivered with care.</p>
+                    </div>
+                    <div class="col-md-2 col-sm-6 mb-3">
+                        <h5>Gallery</h5>
+                        <ul class="list-unstyled">
+                            <li><a href="#kitchen_styles">Kitchens</a></li>
+                            <li><a href="#livingroom_styles">Living Rooms</a></li>
+                            <li><a href="#bedroom_styles">Bedrooms</a></li>
+                            <li><a href="#storage_styles">Storage</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-2 col-sm-6 mb-3">
+                        <h5>Company</h5>
+                        <ul class="list-unstyled">
+                            <li><a href="#about">About Us</a></li>
+                            <li><a href="#contact">Contact</a></li>
+                            <li><a href="#careers">Careers</a></li>
+                            <li><a href="#faq">FAQ</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4 col-sm-6 mb-3">
+                        <h5>Contact</h5>
+                        <ul class="list-unstyled">
+                            <li><i class="fa fa-map-marker-alt"></i> 1234 Modern Ave, City, Country</li>
+                            <li><i class="fa fa-phone"></i> +1 234 567 8900</li>
+                            <li><i class="fa fa-envelope"></i> <a href="mailto:contact@homestyle.com">contact@homestyle.com</a></li>
+                        </ul>
+                        <div class="mt-3">
+                            <a href="#" class="text-primary mx-2"><i class="fab fa-facebook fa-lg"></i></a>
+                            <a href="#" class="text-primary mx-2"><i class="fab fa-instagram fa-lg"></i></a>
+                            <a href="#" class="text-primary mx-2"><i class="fab fa-linkedin fa-lg"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="small text-muted">&copy; 2025 HomeStyle Furniture. All rights reserved.</div>
             </div>
-        </div>
-    </footer>
+        </footer>
 
-    <script src="script.js"></script>
-
-<script src="route.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+        <script src="script.js"></script>
+        <script src="route.js"></script>
+        <script>
+        // Auto-collapse navbar on mobile after clicking a nav link
+        $(function() {
+            function collapseNavbarIfOpen() {
+                var toggle = $('.navbar-toggle:visible');
+                var nav = $('#main-navbar');
+                if(toggle.length && nav.hasClass('in')) {
+                    nav.collapse('hide');
+                }
+            }
+            // Collapse when clicking a nav link
+            $('.navbar-nav a').on('click', collapseNavbarIfOpen);
+            // Collapse when clicking outside the navbar if menu is open (mobile only)
+            $(document).on('click touchstart', function(e) {
+                var nav = $('#main-navbar');
+                var toggle = $('.navbar-toggle:visible');
+                if(toggle.length && nav.hasClass('in')) {
+                    // If click is outside navbar and menu
+                    var $target = $(e.target);
+                    if (!$target.closest('.navbar').length && !$target.closest('#main-navbar').length) {
+                        nav.collapse('hide');
+                    }
+                }
+            });
+        });
+        </script>
 </body>
 </html>
