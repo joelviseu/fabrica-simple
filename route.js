@@ -38,10 +38,10 @@ if (!window.loadRouteFromHash) {
         }
         const fragment = window.routes[hash];
         if (fragment) {
-            htmx.ajax('GET', fragment, {target: '#main-content', swap: 'outerHTML transition:true'});
+            htmx.ajax('GET', fragment, {target: '#main-content', swap: 'innerHTML'});
         } else {
             document.getElementById('main-content').innerHTML =
-                '<div class="alert alert-danger text-center my-5">Page not found or route missing.<br><a href="#home" class="btn btn-primary mt-3">Go Home</a></div>';
+                '<div class="panel-content"><div class="alert alert-danger text-center my-5">Page not found or route missing.<br><a href="#home" class="btn btn-primary mt-3">Go Home</a></div></div>';
         }
     };
 }
