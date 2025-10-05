@@ -41,21 +41,9 @@
                 let fetchPromise = endpoint ? fetch(endpoint).then(r => r.json()) : Promise.resolve(null);
                 const main = document.getElementById('main-content');
                 const oldPanel = main.querySelector('.panel-content');
-                let animationPromise = new Promise(resolve => {
-                    if (oldPanel) {
-                        oldPanel.classList.remove('swipe-in-right', 'swipe-in-left');
-                        oldPanel.classList.add('swipe-out-left');
-                        setTimeout(() => {
-                            oldPanel.classList.remove('swipe-out-left');
-                            resolve();
-                        }, 600);
-                    } else {
-                        resolve();
-                    }
-                });
-                Promise.all([fetchPromise, animationPromise]).then(([json, _]) => {
+                let oldPanelRef = oldPanel;
+                Promise.resolve(fetchPromise).then(json => {
                     if (isHome) {
-                        // Force Alpine to re-render home view for animation
                         const setAndAnimateHome = () => {
                             this.view = 'home';
                             this.data = json;
@@ -65,7 +53,18 @@
                                     newPanel.style.opacity = '0';
                                     newPanel.style.transform = 'translateX(100vw)';
                                     void newPanel.offsetWidth;
+                                    // Animate in new panel
                                     this.animateIn();
+                                    // Remove old panel after new one starts animating
+                                    if (oldPanelRef && oldPanelRef !== newPanel) {
+                                        oldPanelRef.classList.remove('swipe-in-right', 'swipe-in-left');
+                                        oldPanelRef.classList.add('swipe-out-left');
+                                        setTimeout(() => {
+                                            if (oldPanelRef && oldPanelRef.parentNode) {
+                                                oldPanelRef.parentNode.removeChild(oldPanelRef);
+                                            }
+                                        }, 600);
+                                    }
                                 }
                             });
                         };
@@ -79,11 +78,9 @@
                         const hash = window.location.hash.replace('#', '');
                         const [section, subpage] = hash.split('/');
                         if (subpage && json && json.items) {
-                            // Find the item by slug or name (slugify for safety)
                             const slug = subpage;
                             const item = json.items.find(i => this.slugify(i.name) === slug);
                             if (item) {
-                                // Render as detail page, but use same template structure
                                 this.view = 'detail';
                                 this.data = {
                                     title: item.name,
@@ -99,13 +96,22 @@
                         }
                     }
                     this.$nextTick(() => {
-                        // Always hide and set transform before animating
                         const newPanel = this.$refs.panelContent;
                         if (newPanel) {
                             newPanel.style.opacity = '0';
                             newPanel.style.transform = 'translateX(100vw)';
                             void newPanel.offsetWidth;
                             this.animateIn();
+                            // Remove old panel after new one starts animating
+                            if (oldPanelRef && oldPanelRef !== newPanel) {
+                                oldPanelRef.classList.remove('swipe-in-right', 'swipe-in-left');
+                                oldPanelRef.classList.add('swipe-out-left');
+                                setTimeout(() => {
+                                    if (oldPanelRef && oldPanelRef.parentNode) {
+                                        oldPanelRef.parentNode.removeChild(oldPanelRef);
+                                    }
+                                }, 600);
+                            }
                         }
                     });
                 });
@@ -143,18 +149,7 @@
                 });
             },
             goBack() {
-                if (this.history.length > 0) {
-                    const prev = this.history.pop();
-                    window.location.hash = prev.replace('#', '');
-                } else {
-                    // If on a detail page, go to parent category
-                    const hash = window.location.hash.replace('#', '');
-                    if (hash.includes('/')) {
-                        const parent = hash.split('/')[0];
-                        window.location.hash = parent;
-                    }
-                    // No further action needed; fallback handled by outer function
-                }
+                window.history.back();
             },
             slugify(str) {
                 return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');

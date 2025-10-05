@@ -6,25 +6,25 @@ echo json_encode([
     [
       "name" => "Kitchens",
       "description" => "Modern, classic, and luxury kitchen collections.",
-      "image" => "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&h=250&fit=crop",
+      "image" => "https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=400&h=250&fit=crop", // Modern kitchen
       "section" => "kitchen"
     ],
     [
       "name" => "Living Rooms",
       "description" => "Comfort and style for your living space.",
-      "image" => "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=400&h=250&fit=crop",
+      "image" => "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=400&h=250&fit=crop", // Cozy living room
       "section" => "livingroom"
     ],
     [
       "name" => "Bedrooms",
       "description" => "Relaxing bedroom sets for every taste.",
-      "image" => "https://images.unsplash.com/photo-1460518451285-97b6aa326961?w=400&h=250&fit=crop",
+      "image" => "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=400&h=250&fit=crop", // Modern bedroom
       "section" => "bedroom"
     ],
     [
       "name" => "Storage",
       "description" => "Smart storage solutions for every room.",
-      "image" => "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=400&h=250&fit=crop",
+  "image" => "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=400&h=250&fit=crop", // Closet shelving furniture
       "section" => "storage"
     ]
   ]
