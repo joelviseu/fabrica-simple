@@ -35,6 +35,7 @@ return function (ContainerBuilder $containerBuilder) {
             $settings = $c->get(SettingsInterface::class);
             $dbSettings = $settings->get('db');
 
+            // Try socket connection for local development
             $connectionParams = [
                 'dbname' => $dbSettings['database'],
                 'user' => $dbSettings['username'],
@@ -42,6 +43,7 @@ return function (ContainerBuilder $containerBuilder) {
                 'host' => $dbSettings['host'],
                 'driver' => 'pdo_mysql',
                 'charset' => $dbSettings['charset'],
+                'unix_socket' => '/var/run/mysqld/mysqld.sock', // For Ubuntu MySQL
             ];
 
             return DriverManager::getConnection($connectionParams);

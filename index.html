@@ -21,119 +21,26 @@
         </div>
     </section>
 
-    <!-- Main Content -->
-    <div class="container py-5">
-        <div id="content">
-            <!-- Home View -->
-            <div id="home-view" class="view-transition view-container">
-                <h2 class="text-center mb-5 animate-on-load">What are you looking for?</h2>
-                <div class="row">
-                    <div class="col-md-3 col-sm-6 mb-4 animate-on-load">
-                        <div class="card p-4 text-center" onclick="showCategories()">
-                            <i class="fas fa-utensils fa-3x text-primary mb-3"></i>
-                            <h4>Kitchens</h4>
-                            <p class="text-muted">Modern kitchen furniture</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-sm-6 mb-4 animate-on-load">
-                        <div class="card p-4 text-center" onclick="showCategories()">
-                            <i class="fas fa-couch fa-3x text-primary mb-3"></i>
-                            <h4>Living Rooms</h4>
-                            <p class="text-muted">Comfortable living spaces</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-sm-6 mb-4 animate-on-load">
-                        <div class="card p-4 text-center" onclick="showCategories()">
-                            <i class="fas fa-bed fa-3x text-primary mb-3"></i>
-                            <h4>Bedrooms</h4>
-                            <p class="text-muted">Restful bedroom furniture</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-sm-6 mb-4 animate-on-load">
-                        <div class="card p-4 text-center" onclick="showCategories()">
-                            <i class="fas fa-door-closed fa-3x text-primary mb-3"></i>
-                            <h4>Storage</h4>
-                            <p class="text-muted">Smart storage solutions</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <!-- Main Content: HTMX-powered dynamic container -->
+        <div id="main-content" class="htmx-swap-container" hx-get="categories/main.html" hx-trigger="load" hx-swap="outerHTML transition:true"></div>
 
-            <!-- Categories View -->
-            <div id="categories-view" class="view-transition view-container" style="display: none;">
-                <div class="text-center mb-4">
-                    <button class="btn btn-default" onclick="showHome()">
-                        <i class="fa fa-home"></i> Home
-                    </button>
-                </div>
-                <h2 class="text-center mb-5 animate-on-load">Choose Your Style</h2>
-                <div class="row">
-                    <div class="col-md-4 mb-4 animate-on-load">
-                        <div class="card" onclick="showDetails('modern')">
-                            <div class="card-img-container" style="position: relative; overflow: hidden;">
-                                <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=250&fit=crop" class="card-img-top" alt="Modern" style="transition: transform 0.3s ease;">
-                            </div>
-                            <div class="card-body text-center">
-                                <h5>Modern Collection</h5>
-                                <p class="text-muted">Clean lines and contemporary design</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-4 animate-on-load">
-                        <div class="card" onclick="showDetails('classic')">
-                            <div class="card-img-container" style="position: relative; overflow: hidden;">
-                                <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=250&fit=crop" class="card-img-top" alt="Classic" style="transition: transform 0.3s ease;">
-                            </div>
-                            <div class="card-body text-center">
-                                <h5>Classic Collection</h5>
-                                <p class="text-muted">Timeless elegance and comfort</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-4 animate-on-load">
-                        <div class="card" onclick="showDetails('luxury')">
-                            <div class="card-img-container" style="position: relative; overflow: hidden;">
-                                <img src="https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=400&h=250&fit=crop" class="card-img-top" alt="Luxury" style="transition: transform 0.3s ease;">
-                            </div>
-                            <div class="card-body text-center">
-                                <h5>Luxury Collection</h5>
-                                <p class="text-muted">Premium materials and craftsmanship</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Details View -->
-            <div id="details-view" class="view-transition view-container" style="display: none;">
-                <div class="text-center mb-4">
-                    <button class="btn btn-default" onclick="showHome()">
-                        <i class="fa fa-home"></i> Home
-                    </button>
-                    <button class="btn btn-default" onclick="showCategories()">
-                        <i class="fa fa-arrow-left"></i> Back
-                    </button>
-                </div>
-                <div class="row">
-                    <div class="col-md-8 col-md-offset-2 text-center">
-                        <div class="card p-5 animate-on-load">
-                            <img id="detail-image" src="" class="img-responsive center-block mb-4" style="max-width: 300px; transition: transform 0.3s ease;">
-                            <h3 id="detail-title" class="text-primary"></h3>
-                            <p id="detail-description" class="lead text-muted"></p>
-                            <button class="btn btn-primary btn-lg" onclick="contactUs()">
-                                <span id="contact-text"><i class="fa fa-phone"></i> Contact Us</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Swipe indicator for mobile -->
-        <div class="swipe-indicator">
-            <i class="fas fa-hand-pointer"></i> Tap cards to explore
-        </div>
-    </div>
+            <script>
+            // HTMX right-to-left transition animation (strong effect)
+            document.body.addEventListener('htmx:beforeSwap', function(evt) {
+                if(evt.detail.target && evt.detail.xhr && evt.detail.target.id === 'main-content') {
+                    evt.detail.target.classList.add('swipe-out-left');
+                }
+            });
+            document.body.addEventListener('htmx:afterSwap', function(evt) {
+                if(evt.detail.target && evt.detail.target.id === 'main-content') {
+                    evt.detail.target.classList.remove('swipe-out-left');
+                    evt.detail.target.classList.add('swipe-in-right');
+                    setTimeout(function() {
+                        evt.detail.target.classList.remove('swipe-in-right');
+                    }, 600);
+                }
+            });
+            </script>
 
     <!-- Footer -->
     <footer class="bg-dark text-white text-center py-4">

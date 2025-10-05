@@ -152,7 +152,8 @@ function trackAction(action, data = null) {
     
     console.log('📊 Analytics:', analyticsData);
     
-    // Send to API
+    // Disabled API call for analytics (PHP backend)
+    /*
     fetch('http://localhost:8082/api/visitors', {
         method: 'POST',
         headers: {
@@ -168,6 +169,7 @@ function trackAction(action, data = null) {
         console.error('❌ Analytics error:', error);
         // Fallback: still log locally if API fails
     });
+    */
 }
 
 function getCurrentPage() {
