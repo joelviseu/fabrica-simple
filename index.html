@@ -36,7 +36,142 @@
             overflow-y: scroll;
         }
         </style>
-        <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script>
+    // Alpine.js SPA logic for HomeStyle with sub-page (detail) support
+    function spaApp() {
+        return {
+            view: 'home',
+            data: null,
+            history: [], // stack for back navigation
+            init() {
+                window.addEventListener('hashchange', this.route.bind(this));
+                this.route();
+            },
+            route() {
+                const hash = window.location.hash.replace('#', '');
+                let endpoint = '';
+                let isHome = false;
+                if (!hash || hash === 'home') {
+                    endpoint = 'api/categories/home.php';
+                    isHome = true;
+                } else {
+                    // Support for sub-pages: e.g. kitchen_styles/modern-kitchen
+                    const [section, subpage] = hash.split('/');
+                    if (section.startsWith('kitchen')) endpoint = 'api/categories/kitchen.php';
+                    else if (section.startsWith('livingroom')) endpoint = 'api/categories/livingroom.php';
+                    else if (section.startsWith('bedroom')) endpoint = 'api/categories/bedroom.php';
+                    else if (section.startsWith('storage')) endpoint = 'api/categories/storage.php';
+                    else endpoint = '';
+                }
+                let fetchPromise = endpoint ? fetch(endpoint).then(r => r.json()) : Promise.resolve(null);
+                const main = document.getElementById('main-content');
+                const oldPanel = main.querySelector('.panel-content');
+                let animationPromise = new Promise(resolve => {
+                    if (oldPanel) {
+                        oldPanel.classList.remove('swipe-in-right', 'swipe-in-left');
+                        oldPanel.classList.add('swipe-out-left');
+                        setTimeout(() => {
+                            oldPanel.classList.remove('swipe-out-left');
+                            resolve();
+                        }, 600);
+                    } else {
+                        resolve();
+                    }
+                });
+                Promise.all([fetchPromise, animationPromise]).then(([json, _]) => {
+                    if (isHome) {
+                        this.view = 'home';
+                        this.data = json;
+                    } else {
+                        const hash = window.location.hash.replace('#', '');
+                        const [section, subpage] = hash.split('/');
+                        if (subpage && json && json.items) {
+                            // Find the item by slug or name (slugify for safety)
+                            const slug = subpage;
+                            const item = json.items.find(i => this.slugify(i.name) === slug);
+                            if (item) {
+                                // Render as detail page, but use same template structure
+                                this.view = 'detail';
+                                this.data = {
+                                    title: item.name,
+                                    items: item.details && Array.isArray(item.details) ? item.details : []
+                                };
+                            } else {
+                                this.view = section;
+                                this.data = json;
+                            }
+                        } else {
+                            this.view = section;
+                            this.data = json;
+                        }
+                    }
+                    this.$nextTick(() => {
+                        // Always hide and set transform before animating
+                        const newPanel = this.$refs.panelContent;
+                        if (newPanel) {
+                            newPanel.style.opacity = '0';
+                            newPanel.style.transform = 'translateX(100vw)';
+                            void newPanel.offsetWidth;
+                            this.animateIn();
+                        }
+                    });
+                });
+            },
+            animateIn() {
+                const newPanel = this.$refs.panelContent;
+                if (newPanel) {
+                    // Remove any previous swipe-in classes
+                    newPanel.classList.remove('swipe-in-right', 'swipe-in-left');
+                    // Always animate in from right
+                    newPanel.classList.add('swipe-in-right');
+                    // After animation, reset styles
+                    setTimeout(() => {
+                        newPanel.classList.remove('swipe-in-right');
+                        newPanel.style.opacity = '';
+                        newPanel.style.transform = '';
+                    }, 600);
+                }
+            },
+            navigate(section) {
+                // Push to history for back navigation
+                this.history.push(window.location.hash);
+                window.location.hash = section + '_styles';
+            },
+            navigateDetail(detailsSlug) {
+                // Push to history for back navigation
+                this.history.push(window.location.hash);
+                const oldHash = window.location.hash;
+                window.location.hash += '/' + detailsSlug;
+                // Only call route() if hashchange will not fire (hash unchanged)
+                this.$nextTick(() => {
+                    if (window.location.hash === oldHash) {
+                        this.route();
+                    }
+                });
+            },
+            goBack() {
+                if (this.history.length > 0) {
+                    const prev = this.history.pop();
+                    window.location.hash = prev.replace('#', '');
+                } else {
+                    // If on a detail page, go to parent category
+                    const hash = window.location.hash.replace('#', '');
+                    if (hash.includes('/')) {
+                        const parent = hash.split('/')[0];
+                        window.location.hash = parent;
+                    } else {
+                        window.location.hash = 'home';
+                    }
+                }
+            },
+            slugify(str) {
+                return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            }
+        }
+    }
+    window.spaApp = spaApp;
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
 <body>
         <!-- Navbar -->
@@ -76,126 +211,229 @@
             </div>
         </header>
 
-        <!-- Main Content: HTMX-powered dynamic container -->
-        <div id="main-content" class="htmx-swap-container" hx-swap="none"></div>
 
-        <script>
-        // Custom HTMX swap for true swipe-out and swipe-in
-        document.body.addEventListener('htmx:beforeSwap', function(evt) {
-            // Prevent swap if the navbar toggle (hamburger) is clicked
-            // Only allow swap for actual navigation links
-            var activeElement = document.activeElement;
-            if (activeElement && activeElement.classList.contains('navbar-toggle')) {
-                // Ignore swaps triggered by navbar toggle
-                return;
-            }
-            if(evt.detail.target && evt.detail.xhr && evt.detail.target.id === 'main-content') {
-                evt.preventDefault(); // We'll handle the swap manually
-                var main = evt.detail.target;
-                var oldPanel = main.querySelector('.panel-content');
-                // Create a temp div to parse the new content
-                var temp = document.createElement('div');
-                temp.innerHTML = evt.detail.xhr.response;
-                var newPanel = temp.querySelector('.panel-content');
-                if(!oldPanel || !newPanel) {
-                    // fallback: just swap instantly
-                    main.innerHTML = evt.detail.xhr.response;
-                    // Animate in if possible
-                    var np = main.querySelector('.panel-content');
-                    if(np) {
-                        np.classList.add('swipe-in-right');
-                        setTimeout(function(){ np.classList.remove('swipe-in-right'); }, 600);
-                    }
-                    return;
-                }
-                // Animate out
-                oldPanel.classList.add('swipe-out-left');
-                setTimeout(function() {
-                    main.innerHTML = newPanel.outerHTML;
-                    var np = main.querySelector('.panel-content');
-                    if(np) {
-                        np.classList.add('swipe-in-right');
-                        setTimeout(function(){ np.classList.remove('swipe-in-right'); }, 600);
-                    }
-                }, 600);
-            }
-        });
-        </script>
-
-        <!-- Footer -->
-        <footer class="footer bg-light text-center paper-shadow" style="margin-top:3rem;padding:2.5rem 0 1.5rem 0;border-radius:2rem 2rem 0 0;box-shadow:0 -4px 24px rgba(45,58,75,0.07);">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-4 col-sm-6 mb-3">
-                        <h4 class="text-primary"><i class="fa fa-couch"></i> HomeStyle</h4>
-                        <p class="small">Premium furniture for modern living. Crafted with passion, delivered with care.</p>
-                    </div>
-                    <div class="col-md-2 col-sm-6 mb-3">
-                        <h5>Gallery</h5>
-                        <ul class="list-unstyled">
-                            <li><a href="#kitchen_styles">Kitchens</a></li>
-                            <li><a href="#livingroom_styles">Living Rooms</a></li>
-                            <li><a href="#bedroom_styles">Bedrooms</a></li>
-                            <li><a href="#storage_styles">Storage</a></li>
-                        </ul>
-                    </div>
-                    <div class="col-md-2 col-sm-6 mb-3">
-                        <h5>Company</h5>
-                        <ul class="list-unstyled">
-                            <li><a href="#about">About Us</a></li>
-                            <li><a href="#contact">Contact</a></li>
-                            <li><a href="#careers">Careers</a></li>
-                            <li><a href="#faq">FAQ</a></li>
-                        </ul>
-                    </div>
-                    <div class="col-md-4 col-sm-6 mb-3">
-                        <h5>Contact</h5>
-                        <ul class="list-unstyled">
-                            <li><i class="fa fa-map-marker-alt"></i> 1234 Modern Ave, City, Country</li>
-                            <li><i class="fa fa-phone"></i> +1 234 567 8900</li>
-                            <li><i class="fa fa-envelope"></i> <a href="mailto:contact@homestyle.com">contact@homestyle.com</a></li>
-                        </ul>
-                        <div class="mt-3">
-                            <a href="#" class="text-primary mx-2"><i class="fab fa-facebook fa-lg"></i></a>
-                            <a href="#" class="text-primary mx-2"><i class="fab fa-instagram fa-lg"></i></a>
-                            <a href="#" class="text-primary mx-2"><i class="fab fa-linkedin fa-lg"></i></a>
-                        </div>
+        <!-- Main Content: SPA dynamic container -->
+    <div id="main-content" class="container" x-data="spaApp()">
+            <!-- Home View -->
+            <template x-if="view === 'home'">
+                <div class="panel-content animate-on-load" x-ref="panelContent">
+                    <div class="row cards">
+                        <template x-for="item in data && data.items ? data.items : []" :key="item.name">
+                            <div class="col-sm-6 col-md-3 mb-4">
+                                <div class="card h-100 shadow text-center text-dark card-hover" @click="navigate(item.section)">
+                                    <img :src="item.image" class="card-img-top img-responsive" :alt="item.name">
+                                    <div class="card-body">
+                                        <h4 class="card-title" x-text="item.name"></h4>
+                                        <p class="card-text" x-text="item.description"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
                     </div>
                 </div>
-                <hr>
-                <div class="small text-muted">&copy; 2025 HomeStyle Furniture. All rights reserved.</div>
-            </div>
-        </footer>
+            </template>
+            <!-- Category/Style/Detail View -->
+            <template x-if="view !== 'home' && data">
+                <div class="panel-content animate-on-load" x-ref="panelContent" style="opacity:0;transform:translateX(100vw);">
+                    <button class="btn btn-link" @click="goBack()"><i class="fa fa-arrow-left"></i> Back</button>
+                    <h2 class="text-center mb-5" x-text="data.title"></h2>
+                    <div class="row cards">
+                        <template x-for="item in data.items" :key="item.name">
+                            <div class="col-sm-6 col-md-4 mb-4">
+                                <div class="card h-100 shadow text-dark card-hover" @click="item.details ? navigateDetail(slugify(item.name)) : null" style="cursor: pointer;">
+                                    <img :src="item.image" class="card-img-top img-responsive" :alt="item.name">
+                                    <div class="card-body">
+                                        <h4 class="card-title" x-text="item.name"></h4>
+                                        <p class="card-text" x-text="item.description"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </div>
 
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-        <script src="script.js"></script>
-        <script src="route.js"></script>
         <script>
-        // Auto-collapse navbar on mobile after clicking a nav link
-        $(function() {
-            function collapseNavbarIfOpen() {
-                var toggle = $('.navbar-toggle:visible');
-                var nav = $('#main-navbar');
-                if(toggle.length && nav.hasClass('in')) {
-                    nav.collapse('hide');
-                }
-            }
-            // Collapse when clicking a nav link
-            $('.navbar-nav a').on('click', collapseNavbarIfOpen);
-            // Collapse when clicking outside the navbar if menu is open (mobile only)
-            $(document).on('click touchstart', function(e) {
-                var nav = $('#main-navbar');
-                var toggle = $('.navbar-toggle:visible');
-                if(toggle.length && nav.hasClass('in')) {
-                    // If click is outside navbar and menu
-                    var $target = $(e.target);
-                    if (!$target.closest('.navbar').length && !$target.closest('#main-navbar').length) {
-                        nav.collapse('hide');
+        // Alpine.js SPA logic for HomeStyle with sub-page (detail) support
+        function spaApp() {
+            return {
+                view: 'home',
+                data: null,
+                history: [], // stack for back navigation
+                init() {
+                    window.addEventListener('hashchange', this.route.bind(this));
+                    this.route();
+                },
+                route() {
+                    const hash = window.location.hash.replace('#', '');
+                    let endpoint = '';
+                    let isHome = false;
+                    if (!hash || hash === 'home') {
+                        endpoint = 'api/categories/home.php';
+                        isHome = true;
+                    } else {
+                        // Support for sub-pages: e.g. kitchen_styles/modern-kitchen
+                        const [section, subpage] = hash.split('/');
+                        if (section.startsWith('kitchen')) endpoint = 'api/categories/kitchen.php';
+                        else if (section.startsWith('livingroom')) endpoint = 'api/categories/livingroom.php';
+                        else if (section.startsWith('bedroom')) endpoint = 'api/categories/bedroom.php';
+                        else if (section.startsWith('storage')) endpoint = 'api/categories/storage.php';
+                        else endpoint = '';
                     }
-                }
-            });
-        });
-        </script>
-</body>
-</html>
+                    let fetchPromise = endpoint ? fetch(endpoint).then(r => r.json()) : Promise.resolve(null);
+                    const main = document.getElementById('main-content');
+                    const oldPanel = main.querySelector('.panel-content');
+                    let animationPromise = new Promise(resolve => {
+                        if (oldPanel) {
+                            oldPanel.classList.remove('swipe-in-right', 'swipe-in-left');
+                            oldPanel.classList.add('swipe-out-left');
+                            setTimeout(() => {
+                                oldPanel.classList.remove('swipe-out-left');
+                                resolve();
+                            }, 600);
+                        } else {
+                            resolve();
+                        }
+                    });
+                    Promise.all([fetchPromise, animationPromise]).then(([json, _]) => {
+                        if (isHome) {
+                            this.view = 'home';
+                            this.data = json;
+                        } else {
+                            const hash = window.location.hash.replace('#', '');
+                            const [section, subpage] = hash.split('/');
+                            if (subpage && json && json.items) {
+                                // Find the item by slug or name (slugify for safety)
+                                const slug = subpage;
+                                const item = json.items.find(i => this.slugify(i.name) === slug);
+                                if (item) {
+                                    // Render as detail page, but use same template structure
+                                    this.view = 'detail';
+                                    this.data = {
+                                        title: item.name,
+                                        items: item.details && Array.isArray(item.details) ? item.details : []
+                                    };
+                                } else {
+                                    this.view = section;
+                                    this.data = json;
+                                }
+                            } else {
+                                this.view = section;
+                                this.data = json;
+                            }
+                        }
+                        this.$nextTick(() => {
+                            // Always hide and set transform before animating
+                            const newPanel = this.$refs.panelContent;
+                            if (newPanel) {
+                                newPanel.style.opacity = '0';
+                                newPanel.style.transform = 'translateX(100vw)';
+                                void newPanel.offsetWidth;
+                            }
+                            this.animateIn();
+                        });
+                    });
+                },
+                animateIn() {
+                    const newPanel = this.$refs.panelContent;
+                    if (newPanel) {
+                        // Remove any previous swipe-in classes
+                        newPanel.classList.remove('swipe-in-right', 'swipe-in-left');
+                        // Always animate in from right
+                        newPanel.classList.add('swipe-in-right');
+                        // After animation, reset styles
+                        setTimeout(() => {
+                            newPanel.classList.remove('swipe-in-right');
+                            newPanel.style.opacity = '';
+                            newPanel.style.transform = '';
+                        }, 600);
+                    }
+                },
+                navigate(section) {
+                    this.isBack = false;
+                    // Push to history for back navigation
+                    this.history.push(window.location.hash);
+                    window.location.hash = section + '_styles';
+                },
+                navigateDetail(detailsSlug) {
+                    this.isBack = false;
+                    // Push to history for back navigation
+                    this.history.push(window.location.hash);
+                    const oldHash = window.location.hash;
+                    window.location.hash += '/' + detailsSlug;
+                    // Only call route() if hashchange will not fire (hash unchanged)
+                    this.$nextTick(() => {
+                        if (window.location.hash === oldHash) {
+                            this.route();
+                        }
+                    });
+                },
+                goBack() {
+                    this.isBack = true;
+                    if (this.history.length > 0) {
+                        const prev = this.history.pop();
+                        window.location.hash = prev.replace('#', '');
+                    } else {
+                        // If on a detail page, go to parent category
+                        const hash = window.location.hash.replace('#', '');
+                        if (hash.includes('/')) {
+                            if (section.startsWith('kitchen')) endpoint = 'api/categories/kitchen.php';
+                            else if (section.startsWith('livingroom')) endpoint = 'api/categories/livingroom.php';
+                            else if (section.startsWith('bedroom')) endpoint = 'api/categories/bedroom.php';
+                            else if (section.startsWith('storage')) endpoint = 'api/categories/storage.php';
+                            else endpoint = '';
+                        }
+                        let fetchPromise = endpoint ? fetch(endpoint).then(r => r.json()) : Promise.resolve(null);
+                        const main = document.getElementById('main-content');
+                        const oldPanel = main.querySelector('.panel-content');
+                        let animationPromise = new Promise(resolve => {
+                            if (oldPanel) {
+                                oldPanel.classList.remove('swipe-in-right', 'swipe-in-left');
+                                oldPanel.classList.add('swipe-out-left');
+                                setTimeout(() => {
+                                    oldPanel.classList.remove('swipe-out-left');
+                                    resolve();
+                                }, 600);
+                            } else {
+                                resolve();
+                            }
+                        });
+                        Promise.all([fetchPromise, animationPromise]).then(([json, _]) => {
+                            if (isHome) {
+                                this.view = 'home';
+                                this.data = json;
+                            } else {
+                                const hash = window.location.hash.replace('#', '');
+                                const [section, subpage] = hash.split('/');
+                                if (subpage && json && json.items) {
+                                    // Find the item by slug or name (slugify for safety)
+                                    const slug = subpage;
+                                    const item = json.items.find(i => this.slugify(i.name) === slug);
+                                    if (item) {
+                                        // Render as detail page, but use same template structure
+                                        this.view = 'detail';
+                                        this.data = {
+                                            title: item.name,
+                                            items: item.details && Array.isArray(item.details) ? item.details : []
+                                        };
+                                    } else {
+                                        this.view = section;
+                                        this.data = json;
+                                    }
+                                } else {
+                                    this.view = section;
+                                    this.data = json;
+                                }
+                            }
+                            this.$nextTick(() => {
+                                // Always hide and set transform before animating
+                                const newPanel = this.$refs.panelContent;
+                                if (newPanel) {
+                                    newPanel.style.opacity = '0';
+                                    newPanel.style.transform = 'translateX(100vw)';
+                                    void newPanel.offsetWidth;
+                                }
+                                this.animateIn();
+                            });
+                        });
