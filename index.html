@@ -1,176 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>HomeStyle Furniture Gallery</title>
-        <!-- Bootswatch Paper Theme for Bootstrap 3 -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@3.4.1/paper/bootstrap.min.css">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-        <link href="styles.css" rel="stylesheet">
-        <style>
-            html, body {
-                min-height: 100vh;
-            }
-            body {
-                min-height: 100vh;
-                /* Always show vertical scrollbar to prevent layout shift */
-                overflow-y: scroll;
-            }
-        </style>
-        <style>
-        /* Prevent hamburger icon flicker on SPA swap */
-        .navbar-header, .navbar-toggle {
-            will-change: transform;
-            backface-visibility: hidden;
-            position: relative;
-            z-index: 1001;
-            transform: translateZ(0);
-        }
-        .navbar.navbar-fixed-top {
-            z-index: 1000;
-            overflow-anchor: none;
-        }
-        html {
-            /* Always reserve space for scrollbar to prevent layout shift */
-            overflow-y: scroll;
-        }
-        </style>
-    <script>
-    // Alpine.js SPA logic for HomeStyle with sub-page (detail) support
-    function spaApp() {
-        return {
-            view: 'home',
-            data: null,
-            history: [], // stack for back navigation
-            init() {
-                window.addEventListener('hashchange', this.route.bind(this));
-                this.route();
-            },
-            route() {
-                const hash = window.location.hash.replace('#', '');
-                let endpoint = '';
-                let isHome = false;
-                if (!hash || hash === 'home') {
-                    endpoint = 'api/categories/home.php';
-                    isHome = true;
-                } else {
-                    // Support for sub-pages: e.g. kitchen_styles/modern-kitchen
-                    const [section, subpage] = hash.split('/');
-                    if (section.startsWith('kitchen')) endpoint = 'api/categories/kitchen.php';
-                    else if (section.startsWith('livingroom')) endpoint = 'api/categories/livingroom.php';
-                    else if (section.startsWith('bedroom')) endpoint = 'api/categories/bedroom.php';
-                    else if (section.startsWith('storage')) endpoint = 'api/categories/storage.php';
-                    else endpoint = '';
-                }
-                let fetchPromise = endpoint ? fetch(endpoint).then(r => r.json()) : Promise.resolve(null);
-                const main = document.getElementById('main-content');
-                const oldPanel = main.querySelector('.panel-content');
-                let animationPromise = new Promise(resolve => {
-                    if (oldPanel) {
-                        oldPanel.classList.remove('swipe-in-right', 'swipe-in-left');
-                        oldPanel.classList.add('swipe-out-left');
-                        setTimeout(() => {
-                            oldPanel.classList.remove('swipe-out-left');
-                            resolve();
-                        }, 600);
-                    } else {
-                        resolve();
-                    }
-                });
-                Promise.all([fetchPromise, animationPromise]).then(([json, _]) => {
-                    if (isHome) {
-                        this.view = 'home';
-                        this.data = json;
-                    } else {
-                        const hash = window.location.hash.replace('#', '');
-                        const [section, subpage] = hash.split('/');
-                        if (subpage && json && json.items) {
-                            // Find the item by slug or name (slugify for safety)
-                            const slug = subpage;
-                            const item = json.items.find(i => this.slugify(i.name) === slug);
-                            if (item) {
-                                // Render as detail page, but use same template structure
-                                this.view = 'detail';
-                                this.data = {
-                                    title: item.name,
-                                    items: item.details && Array.isArray(item.details) ? item.details : []
-                                };
-                            } else {
-                                this.view = section;
-                                this.data = json;
-                            }
-                        } else {
-                            this.view = section;
-                            this.data = json;
-                        }
-                    }
-                    this.$nextTick(() => {
-                        // Always hide and set transform before animating
-                        const newPanel = this.$refs.panelContent;
-                        if (newPanel) {
-                            newPanel.style.opacity = '0';
-                            newPanel.style.transform = 'translateX(100vw)';
-                            void newPanel.offsetWidth;
-                            this.animateIn();
-                        }
-                    });
-                });
-            },
-            animateIn() {
-                const newPanel = this.$refs.panelContent;
-                if (newPanel) {
-                    // Remove any previous swipe-in classes
-                    newPanel.classList.remove('swipe-in-right', 'swipe-in-left');
-                    // Always animate in from right
-                    newPanel.classList.add('swipe-in-right');
-                    // After animation, reset styles
-                    setTimeout(() => {
-                        newPanel.classList.remove('swipe-in-right');
-                        newPanel.style.opacity = '';
-                        newPanel.style.transform = '';
-                    }, 600);
-                }
-            },
-            navigate(section) {
-                // Push to history for back navigation
-                this.history.push(window.location.hash);
-                window.location.hash = section + '_styles';
-            },
-            navigateDetail(detailsSlug) {
-                // Push to history for back navigation
-                this.history.push(window.location.hash);
-                const oldHash = window.location.hash;
-                window.location.hash += '/' + detailsSlug;
-                // Only call route() if hashchange will not fire (hash unchanged)
-                this.$nextTick(() => {
-                    if (window.location.hash === oldHash) {
-                        this.route();
-                    }
-                });
-            },
-            goBack() {
-                if (this.history.length > 0) {
-                    const prev = this.history.pop();
-                    window.location.hash = prev.replace('#', '');
-                } else {
-                    // If on a detail page, go to parent category
-                    const hash = window.location.hash.replace('#', '');
-                    if (hash.includes('/')) {
-                        const parent = hash.split('/')[0];
-                        window.location.hash = parent;
-                    } else {
-                        window.location.hash = 'home';
-                    }
-                }
-            },
-            slugify(str) {
-                return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            }
-        }
-    }
-    window.spaApp = spaApp;
-    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeStyle Furniture Gallery</title>
+    <!-- Bootswatch Paper Theme for Bootstrap 3 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@3.4.1/paper/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">       
+    <script src="app.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
 <body>
@@ -201,7 +39,7 @@
         </nav>
 
         <!-- Hero Section -->
-        <header class="hero-header text-center" style="background: linear-gradient(rgba(45,58,75,0.7), rgba(180,138,120,0.3)), url('https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1200') center/cover; min-height: 420px; display: flex; align-items: center; justify-content: center; color: #fff; text-align: center; border-radius: 0 0 2rem 2rem; box-shadow: 0 8px 32px rgba(45,58,75,0.08); margin-bottom: 2rem; padding-top: 90px;">
+    <header class="hero-header text-center" style="background: linear-gradient(rgba(45,58,75,0.7), rgba(180,138,120,0.3)), url('https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1200') center/cover; min-height: 420px; display: flex; align-items: center; justify-content: center; color: #fff; text-align: center; box-shadow: 0 8px 32px rgba(45,58,75,0.08); margin-bottom: 2rem; padding-top: 90px;">
             <div class="container">
                 <h1 class="display-3" style="font-weight:700;letter-spacing:-1px; text-shadow:0 2px 16px rgba(45,58,75,0.18);">HomeStyle Furniture Gallery</h1>
                 <p class="lead" style="font-size:1.5rem; font-weight:400; margin-bottom:2rem; text-shadow:0 2px 8px rgba(45,58,75,0.18);">Discover, explore, and get inspired by our curated furniture collections for every room.</p>
@@ -216,7 +54,7 @@
     <div id="main-content" class="container" x-data="spaApp()">
             <!-- Home View -->
             <template x-if="view === 'home'">
-                <div class="panel-content animate-on-load" x-ref="panelContent">
+                <div class="panel-content animate-on-load" x-ref="panelContent" x-init="swipeInPanel($refs.panelContent)">
                     <div class="row cards">
                         <template x-for="item in data && data.items ? data.items : []" :key="item.name">
                             <div class="col-sm-6 col-md-3 mb-4">
@@ -254,186 +92,44 @@
             </template>
         </div>
 
-        <script>
-        // Alpine.js SPA logic for HomeStyle with sub-page (detail) support
-        function spaApp() {
-            return {
-                view: 'home',
-                data: null,
-                history: [], // stack for back navigation
-                init() {
-                    window.addEventListener('hashchange', this.route.bind(this));
-                    this.route();
-                },
-                route() {
-                    const hash = window.location.hash.replace('#', '');
-                    let endpoint = '';
-                    let isHome = false;
-                    if (!hash || hash === 'home') {
-                        endpoint = 'api/categories/home.php';
-                        isHome = true;
-                    } else {
-                        // Support for sub-pages: e.g. kitchen_styles/modern-kitchen
-                        const [section, subpage] = hash.split('/');
-                        if (section.startsWith('kitchen')) endpoint = 'api/categories/kitchen.php';
-                        else if (section.startsWith('livingroom')) endpoint = 'api/categories/livingroom.php';
-                        else if (section.startsWith('bedroom')) endpoint = 'api/categories/bedroom.php';
-                        else if (section.startsWith('storage')) endpoint = 'api/categories/storage.php';
-                        else endpoint = '';
-                    }
-                    let fetchPromise = endpoint ? fetch(endpoint).then(r => r.json()) : Promise.resolve(null);
-                    const main = document.getElementById('main-content');
-                    const oldPanel = main.querySelector('.panel-content');
-                    let animationPromise = new Promise(resolve => {
-                        if (oldPanel) {
-                            oldPanel.classList.remove('swipe-in-right', 'swipe-in-left');
-                            oldPanel.classList.add('swipe-out-left');
-                            setTimeout(() => {
-                                oldPanel.classList.remove('swipe-out-left');
-                                resolve();
-                            }, 600);
-                        } else {
-                            resolve();
-                        }
-                    });
-                    Promise.all([fetchPromise, animationPromise]).then(([json, _]) => {
-                        if (isHome) {
-                            this.view = 'home';
-                            this.data = json;
-                        } else {
-                            const hash = window.location.hash.replace('#', '');
-                            const [section, subpage] = hash.split('/');
-                            if (subpage && json && json.items) {
-                                // Find the item by slug or name (slugify for safety)
-                                const slug = subpage;
-                                const item = json.items.find(i => this.slugify(i.name) === slug);
-                                if (item) {
-                                    // Render as detail page, but use same template structure
-                                    this.view = 'detail';
-                                    this.data = {
-                                        title: item.name,
-                                        items: item.details && Array.isArray(item.details) ? item.details : []
-                                    };
-                                } else {
-                                    this.view = section;
-                                    this.data = json;
-                                }
-                            } else {
-                                this.view = section;
-                                this.data = json;
-                            }
-                        }
-                        this.$nextTick(() => {
-                            // Always hide and set transform before animating
-                            const newPanel = this.$refs.panelContent;
-                            if (newPanel) {
-                                newPanel.style.opacity = '0';
-                                newPanel.style.transform = 'translateX(100vw)';
-                                void newPanel.offsetWidth;
-                            }
-                            this.animateIn();
-                        });
-                    });
-                },
-                animateIn() {
-                    const newPanel = this.$refs.panelContent;
-                    if (newPanel) {
-                        // Remove any previous swipe-in classes
-                        newPanel.classList.remove('swipe-in-right', 'swipe-in-left');
-                        // Always animate in from right
-                        newPanel.classList.add('swipe-in-right');
-                        // After animation, reset styles
-                        setTimeout(() => {
-                            newPanel.classList.remove('swipe-in-right');
-                            newPanel.style.opacity = '';
-                            newPanel.style.transform = '';
-                        }, 600);
-                    }
-                },
-                navigate(section) {
-                    this.isBack = false;
-                    // Push to history for back navigation
-                    this.history.push(window.location.hash);
-                    window.location.hash = section + '_styles';
-                },
-                navigateDetail(detailsSlug) {
-                    this.isBack = false;
-                    // Push to history for back navigation
-                    this.history.push(window.location.hash);
-                    const oldHash = window.location.hash;
-                    window.location.hash += '/' + detailsSlug;
-                    // Only call route() if hashchange will not fire (hash unchanged)
-                    this.$nextTick(() => {
-                        if (window.location.hash === oldHash) {
-                            this.route();
-                        }
-                    });
-                },
-                goBack() {
-                    this.isBack = true;
-                    if (this.history.length > 0) {
-                        const prev = this.history.pop();
-                        window.location.hash = prev.replace('#', '');
-                    } else {
-                        // If on a detail page, go to parent category
-                        const hash = window.location.hash.replace('#', '');
-                        if (hash.includes('/')) {
-                            if (section.startsWith('kitchen')) endpoint = 'api/categories/kitchen.php';
-                            else if (section.startsWith('livingroom')) endpoint = 'api/categories/livingroom.php';
-                            else if (section.startsWith('bedroom')) endpoint = 'api/categories/bedroom.php';
-                            else if (section.startsWith('storage')) endpoint = 'api/categories/storage.php';
-                            else endpoint = '';
-                        }
-                        let fetchPromise = endpoint ? fetch(endpoint).then(r => r.json()) : Promise.resolve(null);
-                        const main = document.getElementById('main-content');
-                        const oldPanel = main.querySelector('.panel-content');
-                        let animationPromise = new Promise(resolve => {
-                            if (oldPanel) {
-                                oldPanel.classList.remove('swipe-in-right', 'swipe-in-left');
-                                oldPanel.classList.add('swipe-out-left');
-                                setTimeout(() => {
-                                    oldPanel.classList.remove('swipe-out-left');
-                                    resolve();
-                                }, 600);
-                            } else {
-                                resolve();
-                            }
-                        });
-                        Promise.all([fetchPromise, animationPromise]).then(([json, _]) => {
-                            if (isHome) {
-                                this.view = 'home';
-                                this.data = json;
-                            } else {
-                                const hash = window.location.hash.replace('#', '');
-                                const [section, subpage] = hash.split('/');
-                                if (subpage && json && json.items) {
-                                    // Find the item by slug or name (slugify for safety)
-                                    const slug = subpage;
-                                    const item = json.items.find(i => this.slugify(i.name) === slug);
-                                    if (item) {
-                                        // Render as detail page, but use same template structure
-                                        this.view = 'detail';
-                                        this.data = {
-                                            title: item.name,
-                                            items: item.details && Array.isArray(item.details) ? item.details : []
-                                        };
-                                    } else {
-                                        this.view = section;
-                                        this.data = json;
-                                    }
-                                } else {
-                                    this.view = section;
-                                    this.data = json;
-                                }
-                            }
-                            this.$nextTick(() => {
-                                // Always hide and set transform before animating
-                                const newPanel = this.$refs.panelContent;
-                                if (newPanel) {
-                                    newPanel.style.opacity = '0';
-                                    newPanel.style.transform = 'translateX(100vw)';
-                                    void newPanel.offsetWidth;
-                                }
-                                this.animateIn();
-                            });
-                        });
+
+        <!-- Footer -->
+    <footer class="footer bg-light text-dark mt-5 pt-4 pb-3 border-top" style="box-shadow:0 -2px 16px rgba(45,58,75,0.04); border-radius:0;">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <h5 class="mb-3"><i class="fa fa-couch text-primary"></i> HomeStyle</h5>
+                        <p class="small">Curated furniture collections for every room. Inspiring your home, every day.</p>
+                    </div>
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <h6 class="mb-2">Contact</h6>
+                        <ul class="list-unstyled small">
+                            <li><i class="fa fa-map-marker-alt"></i> 1234 Main St, Lisbon, Portugal</li>
+                            <li><i class="fa fa-envelope"></i> <a href="mailto:info@homestyle.com">info@homestyle.com</a></li>
+                            <li><i class="fa fa-phone"></i> +351 21 123 4567</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="mb-2">Quick Links</h6>
+                        <ul class="list-unstyled small">
+                            <li><a href="#home"><i class="fa fa-home"></i> Home</a></li>
+                            <li><a href="#about"><i class="fa fa-info-circle"></i> About</a></li>
+                            <li><a href="#contact"><i class="fa fa-envelope"></i> Contact</a></li>
+                        </ul>
+                        <div class="mt-2">
+                            <a href="#" class="text-dark me-2"><i class="fab fa-facebook fa-lg"></i></a>
+                            <a href="#" class="text-dark me-2"><i class="fab fa-instagram fa-lg"></i></a>
+                            <a href="#" class="text-dark"><i class="fab fa-twitter fa-lg"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col text-center small text-muted">
+                        &copy; 2025 HomeStyle Furniture. All rights reserved.
+                    </div>
+                </div>
+            </div>
+        </footer>
+</body>
+</html>
+                                  
