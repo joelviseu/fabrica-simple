@@ -22,26 +22,40 @@
     </section>
 
     <!-- Main Content: HTMX-powered dynamic container -->
-    <div id="main-content" class="htmx-swap-container"></div>
+    <div id="main-content" class="htmx-swap-container" hx-swap="none"></div>
 
     <script>
-    // HTMX right-to-left transition animation (strong effect)
+    // Custom HTMX swap for true swipe-out and swipe-in
     document.body.addEventListener('htmx:beforeSwap', function(evt) {
         if(evt.detail.target && evt.detail.xhr && evt.detail.target.id === 'main-content') {
-            var panel = evt.detail.target.querySelector('.panel-content');
-            if(panel) panel.classList.add('swipe-out-left');
-        }
-    });
-    document.body.addEventListener('htmx:afterSwap', function(evt) {
-        if(evt.detail.target && evt.detail.target.id === 'main-content') {
-            var panel = evt.detail.target.querySelector('.panel-content');
-            if(panel) {
-                panel.classList.remove('swipe-out-left');
-                panel.classList.add('swipe-in-right');
-                setTimeout(function() {
-                    panel.classList.remove('swipe-in-right');
-                }, 600);
+            evt.preventDefault(); // We'll handle the swap manually
+            var main = evt.detail.target;
+            var oldPanel = main.querySelector('.panel-content');
+            // Create a temp div to parse the new content
+            var temp = document.createElement('div');
+            temp.innerHTML = evt.detail.xhr.response;
+            var newPanel = temp.querySelector('.panel-content');
+            if(!oldPanel || !newPanel) {
+                // fallback: just swap instantly
+                main.innerHTML = evt.detail.xhr.response;
+                // Animate in if possible
+                var np = main.querySelector('.panel-content');
+                if(np) {
+                    np.classList.add('swipe-in-right');
+                    setTimeout(function(){ np.classList.remove('swipe-in-right'); }, 600);
+                }
+                return;
             }
+            // Animate out
+            oldPanel.classList.add('swipe-out-left');
+            setTimeout(function() {
+                main.innerHTML = newPanel.outerHTML;
+                var np = main.querySelector('.panel-content');
+                if(np) {
+                    np.classList.add('swipe-in-right');
+                    setTimeout(function(){ np.classList.remove('swipe-in-right'); }, 600);
+                }
+            }, 600);
         }
     });
     </script>
