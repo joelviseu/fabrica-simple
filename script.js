@@ -140,20 +140,44 @@ function trackAction(action, data = null) {
     const timestamp = new Date().toISOString();
     const userAgent = navigator.userAgent;
     const viewportWidth = window.innerWidth;
+    const isMobile = viewportWidth <= 768;
     
-    console.log('📊 Analytics:', {
+    const analyticsData = {
         action,
-        data,
-        timestamp,
+        page: getCurrentPage(),
+        data: data ? { actionData: data, timestamp } : { timestamp },
         viewportWidth,
-        isMobile: viewportWidth <= 768
-    });
+        isMobile
+    };
     
-    // You can add actual analytics here:
-    // fetch('/api/track', { 
-    //     method: 'POST', 
-    //     body: JSON.stringify({action, data, timestamp, viewportWidth}) 
-    // });
+    console.log('📊 Analytics:', analyticsData);
+    
+    // Send to API
+    fetch('http://localhost:8082/api/visitors', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(analyticsData)
+    })
+    .then(response => response.json())
+    .then(result => {
+        console.log('✅ Analytics sent:', result);
+    })
+    .catch(error => {
+        console.error('❌ Analytics error:', error);
+        // Fallback: still log locally if API fails
+    });
+}
+
+function getCurrentPage() {
+    const currentView = getCurrentView();
+    switch(currentView) {
+        case 'home-view': return 'home';
+        case 'categories-view': return 'categories';
+        case 'details-view': return 'details';
+        default: return 'unknown';
+    }
 }
 
 // Enhanced image hover effects
